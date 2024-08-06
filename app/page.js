@@ -275,17 +275,18 @@ export default function Home() {
             display="flex"
             flexDirection="column"
             gap={3}
-            Height= {600}
+            height= {600}
           >
-            <Typography variant="h6">Generated Recipe</Typography>
+            <Typography variant="h5">Generated Recipe</Typography>
             <Box
             style={{ 
               overflowY: 'auto', // Enable vertical scrolling
               maxHeight: 'calc(100% - 100px)' // Ensure space for other elements
     
             }}
-            border='1px solid primary'
+            border='1px solid #DC5F00'
             borderRadius={2}
+            p={2}
           >
             <Typography variant="body1" style={{ whiteSpace: 'pre-line' }}>
               {recipe}
