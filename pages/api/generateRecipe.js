@@ -18,14 +18,13 @@ export default async function handler(req, res) {
         messages: [
           { role: 'user', content: `Generate a recipe using some of the following ingredients: ${ingredients}` },
         ],
-        max_tokens:3000,
+        max_tokens:4000,
       });
       console.log('API Response:', completion)
       res.status(200).json({ recipe: completion.choices[0].message.content });
     } catch (error) {
       
-      console.error('Error fetching recipe:',error);
-      console.log(error?.status, error?.message)
+      console.error('Error fetching recipe:',error.message);
       res.status(500).json({ error: 'Failed to generate recipe' });
     }
   } else {
