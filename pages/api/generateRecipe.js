@@ -20,9 +20,10 @@ export default async function handler(req, res) {
         ],
         max_tokens:3000,
       });
-      // console.log('API Response:', completion)
+      console.log('API Response:', completion)
       res.status(200).json({ recipe: completion.choices[0].message.content });
     } catch (error) {
+      console.log(error?.status, error?.message)
       console.error('Error fetching recipe:',error?.status, error?.message);
       res.status(500).json({ error: 'Failed to generate recipe' });
     }
