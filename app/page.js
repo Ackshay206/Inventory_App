@@ -12,7 +12,15 @@ import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add'
 import RemoveIcon from '@mui/icons-material/Remove'
 import { alpha, styled,createTheme,ThemeProvider } from '@mui/material/styles';
+import OpenAI from "openai"
+import dotenv from 'dotenv'
 
+dotenv.config()
+
+const openai = new OpenAI({
+  baseURL: "https://openrouter.ai/api/v1",
+  apiKey: process.env.OPENROUTER_API_KEY,
+});
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -67,6 +75,24 @@ const PrimaryColorTypography = styled(Typography)(({ theme }) => ({
   color: theme.palette.primary.main,
 }));
 
+const fetchAndShowRecipe = async () => {
+  const ingredients = inventory.map(item => item.name).join(', ');
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "meta-llama/llama-3.1-8b-instruct:free",
+      messages: [
+        { role: "user", content: `Generate a recipe using the following ingredients: ${ingredients}` }
+      ],
+    });
+
+    setRecipe(completion.choices[0].message.content);
+    setRecipeOpen(true);
+  } catch (error) {
+    console.error("Error fetching recipe:", error);
+  }
+};
+
 export default function Home() {
   const [inventory, setInventory] = useState([]);
   const [open, setOpen] = useState(false);
@@ -76,6 +102,8 @@ export default function Home() {
   const cameraRef = useRef(null);
   const storage = getStorage();
   const [searchQuery, setSearchQuery] = useState('');
+  const [recipe, setRecipe] = useState('');
+  const [recipeOpen, setRecipeOpen] = useState(false);
 
   const updateInventory= async()=> {
     const snapshot= query(collection(firestore,'inventory'))
@@ -236,6 +264,33 @@ export default function Home() {
           <Button variant="contained" onClick={handleCapture}>Capture</Button>
         </Box>
       </Modal>
+      <Modal
+            open={recipeOpen}
+            onClose={() => setRecipeOpen(false)}
+          >
+            <Box
+            position="absolute" top="50%" left="50%"
+            sx={{ transform: "translate(-50%,-50%)" }}
+            width={600}
+            bgcolor="white"
+            border="2px solid #000"
+            boxShadow={24}
+            p={4}
+            display="flex"
+            flexDirection="column"
+            gap={3}
+          >
+            <Typography variant="h6">Generated Recipe</Typography>
+            <Typography>{recipe}</Typography>
+            <Button
+              variant="contained"
+              onClick={() => setRecipeOpen(false)}
+            >
+              Close
+            </Button>
+          </Box>
+        </Modal>
+
     <Box width="100%" alignItems="center" justifyContent="center" gap={3} padding={2}
       display="flex">
     <Button variant="contained"
@@ -245,6 +300,7 @@ export default function Home() {
    >Add new item
     </Button> 
     <Button variant="contained" onClick={handleCameraOpen}>Add using camera</Button>
+
     </Box>
     <Box border="1px solid #333">
         <Box 
@@ -284,6 +340,12 @@ export default function Home() {
           ))}
         </Stack>
       </Box>
+      <Button
+              variant="contained"
+              onClick={fetchAndShowRecipe}
+            >
+              Generate Recipe
+            </Button>
     </Box>
     </Box>
     </ThemeProvider>
