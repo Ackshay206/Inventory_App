@@ -12,15 +12,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add'
 import RemoveIcon from '@mui/icons-material/Remove'
 import { alpha, styled,createTheme,ThemeProvider } from '@mui/material/styles';
-import OpenAI from "openai"
-import dotenv from 'dotenv'
 
-dotenv.config()
-
-const openai = new OpenAI({
-  baseURL: "https://openrouter.ai/api/v1",
-  apiKey: process.env.OPENROUTER_API_KEY,
-});
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -75,23 +67,7 @@ const PrimaryColorTypography = styled(Typography)(({ theme }) => ({
   color: theme.palette.primary.main,
 }));
 
-const fetchAndShowRecipe = async () => {
-  const ingredients = inventory.map(item => item.name).join(', ');
 
-  try {
-    const completion = await openai.chat.completions.create({
-      model: "meta-llama/llama-3.1-8b-instruct:free",
-      messages: [
-        { role: "user", content: `Generate a recipe using the following ingredients: ${ingredients}` }
-      ],
-    });
-
-    setRecipe(completion.choices[0].message.content);
-    setRecipeOpen(true);
-  } catch (error) {
-    console.error("Error fetching recipe:", error);
-  }
-};
 
 export default function Home() {
   const [inventory, setInventory] = useState([]);
@@ -150,6 +126,26 @@ export default function Home() {
       await updateInventory()
     }
   
+  const fetchAndShowRecipe = async () => {
+    const ingredients = inventory.map(item => item.name).join(', ');
+  
+    try {
+      const response = await fetch('/api/generateRecipe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ingredients }),
+      });
+  
+      const data = await response.json();
+      console.log('API Response:', data);
+      setRecipe(data.recipe);
+      setRecipeOpen(true);
+    } catch (error) {
+      console.error('Error fetching recipe:', error);
+    }
+  };
 
   useEffect(()=> {
     updateInventory()
@@ -271,7 +267,7 @@ export default function Home() {
             <Box
             position="absolute" top="50%" left="50%"
             sx={{ transform: "translate(-50%,-50%)" }}
-            width={600}
+            width={1000}
             bgcolor="white"
             border="2px solid #000"
             boxShadow={24}
@@ -279,9 +275,22 @@ export default function Home() {
             display="flex"
             flexDirection="column"
             gap={3}
+            Height= {600}
           >
             <Typography variant="h6">Generated Recipe</Typography>
-            <Typography>{recipe}</Typography>
+            <Box
+            style={{ 
+              overflowY: 'auto', // Enable vertical scrolling
+              maxHeight: 'calc(100% - 100px)' // Ensure space for other elements
+    
+            }}
+            border='1px solid primary'
+            borderRadius={2}
+          >
+            <Typography variant="body1" style={{ whiteSpace: 'pre-line' }}>
+              {recipe}
+            </Typography>
+          </Box>
             <Button
               variant="contained"
               onClick={() => setRecipeOpen(false)}
