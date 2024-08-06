@@ -14,11 +14,11 @@ export default async function handler(req, res) {
 
     try {
       const completion = await openai.chat.completions.create({
-        model:"google/gemma-2-9b-it:free",
+        model:"meta-llama/llama-3.1-8b-instruct:free",
         messages: [
           { role: 'user', content: `Generate a recipe using some of the following ingredients: ${ingredients}` },
         ],
-        max_tokens:4000,
+        max_tokens:1000,
       });
       console.log('API Response:', completion)
       res.status(200).json({ recipe: completion.choices[0].message.content });
