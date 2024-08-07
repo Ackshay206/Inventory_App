@@ -23,11 +23,7 @@ export default async function handler(req, res) {
       console.log('API Response:', completion)
       res.status(200).json({ recipe: completion.choices[0].message.content });
     } catch (error) {
-      
-      console.error('Error fetching recipe:',error.message);
-      res.status(500).json({ error: 'Failed to generate recipe' });
+      console.error(`Error generating recipe: ${error.message}`);
+      res.status(500).json({ error: 'Internal Server Error' });
     }
-  } else {
-    res.status(405).json({ error: 'Method not allowed' });
-  }
-}
+  }}
